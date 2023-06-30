@@ -9,9 +9,10 @@ const fetchWeather = async function (latitude, longitude) {
     const weatherAPIUrl = `${URL_WEATHER_API}lat=${latitude}&lon=${longitude}&units=metric&appid=${process.env.API_KEY}`;
     const response = await axios.get(weatherAPIUrl);
 
-    const { main, weather, wind, clouds } = response.data;
+    const { main, weather, wind, clouds, name, sys } = response.data;
 
     const weatherData = {
+      location: `${sys.country} ${name}`,
       temp: Math.round(main.temp),
       feelsLike: Math.round(main.feels_like),
       pressure: (main.pressure * 0.750062).toFixed(0),
