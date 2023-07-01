@@ -8,11 +8,7 @@ const createMarkupWeather = (data) => {
   Wind: ${data.windSpeed} m/s (gust: ${data.windGust} m/s) 
   Pressure: ${data.pressure} mmHg 
   Humidity: ${data.humidity} % 
-  Cloudiness: ${data.clouds} %
-
-
-
-  https://openweathermap.org/img/wn/${data.icon}@2x.png`;
+  Cloudiness: ${data.clouds} %`;
   return markup;
 };
 
