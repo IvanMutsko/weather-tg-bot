@@ -12,7 +12,6 @@ bot.setMyCommands([
   { command: "/help", description: "help" },
 ]);
 
-// const start = () => {
 bot.on("message", async (msg) => {
   const text = msg.text;
   const chatId = msg.chat.id;
@@ -89,6 +88,3 @@ bot.on("callback_query", async (msg) => {
 
   return sendWeatherInfo(chatId, coords.lat, coords.lon, bot);
 });
-// };
-
-// start();
