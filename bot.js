@@ -1,5 +1,6 @@
 const TelegramApi = require("node-telegram-bot-api");
 const fetchWeather = require("./api/fetchWeather");
+const fetchCity = require("./api/fetchCity");
 const createMarkupWeather = require("./helpers/createMarkupWeather");
 
 require("dotenv").config();
@@ -31,6 +32,31 @@ const options = {
   },
 };
 
+const cityBtn = (data) => {
+  if (data) {
+    let options = {
+      reply_markup: {
+        inline_keyboard: [],
+      },
+    };
+
+    const markupBtn = data.map((city) => {
+      const { country, name, state, lat, lon } = city;
+      const btn = [
+        {
+          text: `${country}, ${name}, ${state}`,
+          callback_data: JSON.stringify({ lat, lon }),
+        },
+      ];
+      return btn;
+    });
+
+    options.reply_markup.inline_keyboard = markupBtn;
+
+    return options;
+  }
+};
+
 const start = () => {
   bot.on("message", async (msg) => {
     const text = msg.text;
@@ -48,7 +74,7 @@ const start = () => {
         );
 
         // an empty line so that an error does not appear
-        await bot.sendMessage(chatId, " ", options);
+        await bot.sendMessage(chatId, "Select the desired option", options);
 
         return;
       }
@@ -83,32 +109,51 @@ const start = () => {
           chatId,
           `https://openweathermap.org/img/wn/${response.icon}@2x.png`
         );
+        return;
       }
     } catch (error) {
       console.log(error);
     }
   });
-  // =====================================
 
-  // catch text from chat
+  // weather in another location
   bot.on("message", async (msg) => {
+    const text = msg.text;
     const chatId = msg.chat.id;
 
-    console.log(chatId);
+    if (text === "Weather in another location") {
+      bot.sendMessage(chatId, "Enter the city and select the correct option");
 
-    
+      bot.on("message", async (msg) => {
+        const text = msg.text;
+        const chatId = msg.chat.id;
+
+        const variantsOfCity = await fetchCity(text);
+
+        const buttons = await cityBtn(variantsOfCity);
+
+        await bot.sendMessage(chatId, "Select the desired option", buttons);
+      });
+    }
   });
-  // =====================================
+  bot.on("callback_query", async (msg) => {
+    const chatId = msg.message.chat.id;
+    const coords = JSON.parse(msg.data);
 
-  // catch text from chat
-  // bot.on("message", async (query) => {
-  // const chatId = query.message.chat.id;
-  // const buttonId = query.data;
-
-  // console.log(query);
-  // });
-
-  // ======================================
+    try {
+      const response = await fetchWeather(coords.lat, coords.lon);
+      // weather message
+      await bot.sendMessage(chatId, createMarkupWeather(response));
+      // weather icon
+      await bot.sendPhoto(
+        chatId,
+        `https://openweathermap.org/img/wn/${response.icon}@2x.png`
+      );
+      return;
+    } catch (error) {
+      console.log(error);
+    }
+  });
 };
 
 start();
